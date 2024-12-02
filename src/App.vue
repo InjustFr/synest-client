@@ -22,18 +22,18 @@
 </template>
 
 <script setup lang="ts">
-import MessageList from './components/MessageList.vue'
+import MessageList from './components/MessageList.vue';
 import ChannelList from './components/ChannelList.vue';
 import { computed, ref } from 'vue';
-import { Channel, useMessagesStore } from './stores/messages';
-import { storeToRefs } from 'pinia'
+import { type Channel, useMessagesStore } from './stores/messages';
+import { storeToRefs } from 'pinia';
 
 const URL = 'ws://localhost:8080';
 
 const { channels } = storeToRefs(useMessagesStore());
 
 const channelNames = computed(() => {
-  return channels.value.map(channel => channel.name);
+    return channels.value.map(channel => channel.name);
 });
 
 const message = ref('');
@@ -54,7 +54,7 @@ function onSocketClose(event: Event) {
 function onSocketMessage(event: MessageEvent) {
     const recievedMessage = JSON.parse(event.data);
 
-    const channel = channels.value.find((channel) => channel.name === recievedMessage.channel);
+    const channel = channels.value.find(channel => channel.name === recievedMessage.channel);
 
     channel?.messages.push(recievedMessage);
 }
@@ -64,11 +64,13 @@ function onSocketError(event: Event) {
 }
 
 function sendMessage() {
-    if(!message.value || !websocket) {
+    if (!message.value || !websocket) {
         return;
     }
 
-    const messageToSend = { username: username.value, message: message.value, channel: selectedChannel.value.name };
+    const messageToSend = { username: username.value,
+        message: message.value,
+        channel: selectedChannel.value.name };
 
     websocket.send(JSON.stringify(messageToSend));
 
@@ -85,7 +87,7 @@ function connect() {
 }
 
 function selectChannel(name: string) {
-  selectedChannel.value = channels.value.find((channel) => channel.name === name) ?? null;
+    selectedChannel.value = channels.value.find(channel => channel.name === name) ?? null;
 }
 </script>
 
@@ -125,7 +127,7 @@ body {
   flex-direction: column;
   gap: 1rem;
   align-self: flex-start;
-} 
+}
 
 .message-form input, .message-form textarea {
   min-width: 200px;

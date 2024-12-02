@@ -16,16 +16,16 @@
 import type { Message } from '@/stores/messages';
 
 const { messages } = defineProps<{
-  messages: Message[];
+    messages: Message[];
 }>();
 </script>
 
 <style scoped>
 .messages-container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem
 }
 
 .messages-container > p {
