@@ -1,7 +1,7 @@
 <template>
   <aside>
     <ChannelList
-      :channels="channelNames"
+      :channels="channels"
       @select="selectChannel($event)"
     ></ChannelList>
   </aside>
@@ -24,70 +24,88 @@
 <script setup lang="ts">
 import MessageList from './components/MessageList.vue';
 import ChannelList from './components/ChannelList.vue';
-import { computed, ref } from 'vue';
-import { type Channel, useMessagesStore } from './stores/messages';
+import { ref } from 'vue';
+import { type Channel, type Message, useMessagesStore } from './stores/messages';
 import { storeToRefs } from 'pinia';
 
-const URL = 'ws://localhost:8080';
+const URL = '/api/.well-known/mercure?topic=/server';
 
 const { channels } = storeToRefs(useMessagesStore());
 
-const channelNames = computed(() => {
-    return channels.value.map(channel => channel.name);
-});
-
 const message = ref('');
 const username = ref('');
-const socketOpened = ref(false);
+const eventSourceOpened = ref(false);
 const selectedChannel = ref<Channel>(channels.value[0] ?? null);
 
-let websocket: WebSocket | null = null;
+let eventSource: EventSource | null = null;
 
-function onSocketOpen(event: Event) {
-    socketOpened.value = true;
+function onEventSourceOpen(event: Event) {
+    eventSourceOpened.value = true;
 }
 
-function onSocketClose(event: Event) {
-    socketOpened.value = false;
-}
-
-function onSocketMessage(event: MessageEvent) {
+function onEventSourceMessage(event: MessageEvent) {
     const recievedMessage = JSON.parse(event.data);
 
-    const channel = channels.value.find(channel => channel.name === recievedMessage.channel);
+    const channel = channels.value.find(channel => channel.id === recievedMessage.data.channel);
 
-    channel?.messages.push(recievedMessage);
+    const newMessage = {
+        id: recievedMessage.data.id,
+        content: recievedMessage.data.content,
+        username: recievedMessage.data.username,
+    } as Message;
+
+    channel?.messages.push(newMessage);
 }
 
-function onSocketError(event: Event) {
-    console.error('Error with websocket');
+function onEventSourceError(event: Event) {
+    console.error('Error with eventSource', event);
 }
 
-function sendMessage() {
-    if (!message.value || !websocket) {
+async function sendMessage() {
+    if (!message.value) {
         return;
     }
 
-    const messageToSend = { username: username.value,
-        message: message.value,
-        channel: selectedChannel.value.name };
+    const messageToSend = {
+        username: username.value,
+        content: message.value,
+        channel: selectedChannel.value.id,
+    };
 
-    websocket.send(JSON.stringify(messageToSend));
+    await fetch('/api/messages', {
+        method: 'POST',
+        body: JSON.stringify(messageToSend),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
 
     message.value = '';
 }
 
-function connect() {
-    websocket = new WebSocket(URL);
+async function connect() {
+    await loadChannels();
 
-    websocket.onopen = onSocketOpen;
-    websocket.onclose = onSocketClose;
-    websocket.onmessage = onSocketMessage;
-    websocket.onerror = onSocketError;
+    eventSource = new EventSource(URL);
+
+    eventSource.onopen = onEventSourceOpen;
+    eventSource.onmessage = onEventSourceMessage;
+    eventSource.onerror = onEventSourceError;
 }
 
-function selectChannel(name: string) {
-    selectedChannel.value = channels.value.find(channel => channel.name === name) ?? null;
+function selectChannel(channel: Channel) {
+    selectedChannel.value = channel;
+}
+
+async function loadChannels() {
+    const response = await fetch('/api/channels');
+    if (!response.ok) {
+        throw new Error('Error while fetching channels');
+    }
+
+    channels.value = await response.json();
+
+    selectedChannel.value = channels.value[0] ?? null;
 }
 </script>
 

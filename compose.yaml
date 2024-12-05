@@ -1,0 +1,11 @@
+services:
+  node:
+    image: node:lts
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/html/app
+    working_dir: /var/www/html/app/
+    entrypoint: /bin/bash
+    ports:
+      - 8000
+

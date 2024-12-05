@@ -5,18 +5,20 @@
             :key="key"
         >
             <a href="" @click.prevent="emit('select', channel)">
-                {{ channel }}
+                {{ channel.name }}
             </a>
         </li>
     </ul>
 </template>
 
 <script setup lang="ts">
+import type { Channel } from '@/stores/messages';
+
 const { channels } = defineProps<{
-    channels: string[];
+    channels: Channel[];
 }>();
 
 const emit = defineEmits<{
-    select: [string];
+    select: [Channel];
 }>();
 </script>
