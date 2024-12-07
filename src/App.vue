@@ -1,24 +1,24 @@
 <template>
-  <aside>
-    <ChannelList
-      :channels="channels"
-      @select="selectChannel($event)"
-    ></ChannelList>
-  </aside>
-  <main>
-    <div class="channel">
-      <h1>Channel {{ selectedChannel?.name }}</h1>
-      <MessageList :messages="selectedChannel?.messages ?? []" />
-      <form @submit.prevent="sendMessage" class="message-form">
-          <label for="username">Username</label>
-          <input v-model="username" id="username" />
-          <button type="button" @click.prevent="connect">Connect</button>
-          <label for="message">Message</label>
-          <textarea v-model="message" id="message" rows="5"></textarea>
-          <button type="submit">Send</button>
-      </form>
-    </div>
-  </main>
+    <aside>
+        <ChannelList
+        :channels="channels"
+        @select="selectChannel($event)"
+        ></ChannelList>
+    </aside>
+    <main>
+        <div class="channel">
+        <h1>Channel {{ selectedChannel?.name }}</h1>
+        <MessageList :messages="selectedChannel?.messages ?? []" />
+        <form @submit.prevent="sendMessage" class="message-form">
+            <label for="username">Username</label>
+            <input v-model="username" id="username" />
+            <button type="button" @click.prevent="connect">Connect</button>
+            <label for="message">Message</label>
+            <textarea v-model="message" id="message" rows="5"></textarea>
+            <button type="submit">Send</button>
+        </form>
+        </div>
+    </main>
 </template>
 
 <script setup lang="ts">
@@ -45,16 +45,35 @@ function onEventSourceOpen(event: Event) {
 
 function onEventSourceMessage(event: MessageEvent) {
     const recievedMessage = JSON.parse(event.data);
+    console.log(recievedMessage);
 
-    const channel = channels.value.find(channel => channel.id === recievedMessage.data.channel);
+    switch (recievedMessage.type) {
+        case 'message_created':
+            const channel = channels.value.find(channel => channel.id === recievedMessage.data.channel);
 
-    const newMessage = {
-        id: recievedMessage.data.id,
-        content: recievedMessage.data.content,
-        username: recievedMessage.data.username,
-    } as Message;
+            const newMessage = {
+                id: recievedMessage.data.id,
+                content: recievedMessage.data.content,
+                username: recievedMessage.data.username,
+            } as Message;
 
-    channel?.messages.push(newMessage);
+            channel?.messages.push(newMessage);
+            break;
+        case 'channel_created':
+            channels.value.push({ ...recievedMessage.data, messages: [] });
+            break;
+        case 'channel_deleted':
+            const channelIndex = channels.value.findIndex(channel => channel.id === recievedMessage.data.id);
+            if (channelIndex !== -1) {
+                channels.value.splice(channelIndex, 1);
+            }
+
+            if (recievedMessage.data.id === selectedChannel.value.id) {
+                selectedChannel.value = channels.value[0] ?? null;
+            }
+
+            break;
+    }
 }
 
 function onEventSourceError(event: Event) {

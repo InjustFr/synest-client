@@ -1,16 +1,16 @@
 <template>
-  <div
-      class="messages-container"
-      ref="messages-container"
-  >
-    <p
-      v-for="message, key in messages"
-      :key="key"
-      class="message"
+    <div
+        class="messages-container"
+        ref="messages-container"
     >
-      {{ message.username }} : {{ message.content }}
-    </p>
-  </div>
+        <p
+        v-for="message, key in messages"
+        :key="key"
+        class="message"
+        >
+        {{ message.username }} : {{ message.content }}
+        </p>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -23,7 +23,6 @@ const { messages } = defineProps<{
 
 const messageContainer = useTemplateRef('messages-container');
 watch(() => messages, () => {
-    console.error(messageContainer.value?.scrollHeight);
     nextTick(() => {
         messageContainer.value?.scrollTo({
             top: messageContainer.value?.scrollHeight,
