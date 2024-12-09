@@ -10,9 +10,8 @@
             <h1>Channel {{ selectedChannel?.name }}</h1>
             <MessageList :messages="selectedChannel?.messages ?? []" />
             <form @submit.prevent="sendMessage" class="message-form">
-                <label for="message">Message</label>
-                <AppTextarea v-model="message" id="message" />
-                <AppButton type="submit">Send</AppButton>
+                <AppTextarea v-model="message" id="message" placeholder="Type your message ..." />
+                <AppButton type="submit" icon><SendHorizonal /></AppButton>
             </form>
         </main>
         <LoginPopin
@@ -32,6 +31,7 @@ import AppButton from './components/AppButton.vue';
 import AppTextarea from './components/AppTextarea.vue';
 import LoginPopin from './components/Login/LoginPopin.vue';
 import { useUserStore } from './stores/user';
+import { SendHorizonal } from 'lucide-vue-next';
 
 const URL = '/api/.well-known/mercure?topic=/server';
 
@@ -165,13 +165,14 @@ async function loadChannels() {
 
 .message-form {
   display: flex;
-  flex-direction: column;
   gap: 1rem;
-  align-self: flex-start;
+  align-items: center;
   padding: 0 1rem;
+  width: 100%
 }
 
-.message-form input, .message-form textarea {
+.message-form .textarea {
   min-width: 200px;
+  flex-grow: 1;
 }
 </style>

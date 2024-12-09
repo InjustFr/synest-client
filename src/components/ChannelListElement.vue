@@ -12,13 +12,14 @@
             href=""
             @click.prevent="emit('delete', channel)"
         >
-            x
+            <X />
         </a>
     </li>
 </template>
 
 <script setup lang="ts">
 import type { Channel } from '@/stores/messages';
+import { X } from 'lucide-vue-next';
 
 defineProps<{
     channel: Channel;

@@ -1,7 +1,7 @@
 <template>
     <div class="popin-container">
         <div class="popin">
-            <a v-if="!disableClose" href="" class="popin__close" @click="emit('close')">X</a>
+            <a v-if="!disableClose" href="" class="popin__close" @click="emit('close')"><X /></a>
             <div class="popin__content">
                 <slot />
             </div>
@@ -10,6 +10,8 @@
 </template>
 
 <script setup lang="ts">
+import { X } from 'lucide-vue-next';
+
 const { disableClose = false } = defineProps<{
     disableClose?: boolean;
 }>();

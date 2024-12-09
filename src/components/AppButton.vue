@@ -12,9 +12,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-const { variant = 'primary' } = defineProps<{
+const { variant = 'primary', icon = false } = defineProps<{
     type: 'button' | 'submit' | 'reset';
     variant?: 'primary' | 'secondary';
+    icon?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -22,9 +23,13 @@ const emit = defineEmits<{
 }>();
 
 const classes = computed(() => {
-    return [
-        'btn-' + variant,
-    ];
+    const classes = ['btn-' + variant];
+
+    if (icon) {
+        classes.push('btn-icon');
+    }
+
+    return classes;
 });
 </script>
 
@@ -39,6 +44,10 @@ const classes = computed(() => {
         cursor: pointer;
         font-weight: bold;
 
+    }
+
+    .btn-icon {
+        aspect-ratio: 1;
     }
 
     .btn-primary {

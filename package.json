@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@stylistic/eslint-plugin": "^2.11.0",
+    "lucide-vue-next": "^0.468.0",
     "pinia": "^2.2.6",
     "vue": "^3.5.13"
   },
