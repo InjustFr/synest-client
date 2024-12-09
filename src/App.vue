@@ -10,14 +10,15 @@
             <h1>Channel {{ selectedChannel?.name }}</h1>
             <MessageList :messages="selectedChannel?.messages ?? []" />
             <form @submit.prevent="sendMessage" class="message-form">
-                <label for="username">Username</label>
-                <AppInput v-model="username" id="username" />
-                <AppButton type="button" variant="secondary" @click.prevent="connect">Connect</AppButton>
                 <label for="message">Message</label>
                 <AppTextarea v-model="message" id="message" />
                 <AppButton type="submit">Send</AppButton>
             </form>
         </main>
+        <LoginPopin
+            v-if="!isLoggedIn"
+            @logged-in="connect"
+        />
     </div>
 </template>
 
@@ -29,11 +30,14 @@ import { type Channel, type Message, useMessagesStore } from './stores/messages'
 import { storeToRefs } from 'pinia';
 import AppButton from './components/AppButton.vue';
 import AppTextarea from './components/AppTextarea.vue';
-import AppInput from './components/AppInput.vue';
+import LoginPopin from './components/Login/LoginPopin.vue';
+import { useUserStore } from './stores/user';
 
 const URL = '/api/.well-known/mercure?topic=/server';
 
 const { channels } = storeToRefs(useMessagesStore());
+
+const { isLoggedIn } = storeToRefs(useUserStore());
 
 const message = ref('');
 const username = ref('');

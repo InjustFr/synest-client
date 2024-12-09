@@ -16,5 +16,7 @@ const model = defineModel<string>();
         border-radius: 1rem;
         padding: 0.5rem 1rem;
         color: white;
+        width: 100%;
+        display: block;
     }
 </style>

@@ -18,5 +18,6 @@ const model = defineModel<string>();
         padding: 1rem;
         color: white;
         resize: none;
+        width: 100%;
     }
 </style>
