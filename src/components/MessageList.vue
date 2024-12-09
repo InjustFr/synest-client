@@ -3,19 +3,18 @@
         class="messages-container"
         ref="messages-container"
     >
-        <p
+        <MessageListElement
         v-for="message, key in messages"
         :key="key"
-        class="message"
-        >
-        {{ message.username }} : {{ message.content }}
-        </p>
+        :message="message"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
 import type { Message } from '@/stores/messages';
 import { nextTick, useTemplateRef, watch } from 'vue';
+import MessageListElement from './MessageListElement.vue';
 
 const { messages } = defineProps<{
     messages: Message[];
@@ -37,12 +36,11 @@ watch(() => messages, () => {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
   overflow: auto;
+  justify-content: flex-end;
 }
 
-.messages-container > p {
-    border: 1px solid black;
-    padding: 1rem;
+.messages-container > *:not(:first-child) {
+    border-top: 1px solid color-mix(in hsl, var(--space-cadet), white 40%);
 }
 </style>

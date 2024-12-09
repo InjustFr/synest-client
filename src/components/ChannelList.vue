@@ -1,24 +1,23 @@
 <template>
-    <ul>
-        <li
+    <ul class="channel-list">
+        <ChannelListElement
             v-for="channel, key in channels"
             :key="key"
-        >
-            <a href="" @click.prevent="emit('select', channel)">
-                {{ channel.name }}
-            </a>
-            <a href="" @click.prevent="deleteChannel(channel.id)">
-                x
-            </a>
-        </li>
+            :channel="channel"
+            @click="emit('select', channel)"
+            @delete="deleteChannel(channel.id)"
+        />
     </ul>
-    <input id="new-channel-name" v-model="newChannelName" />
-    <button type="button" href="" @click.prevent="createChannel">Add channel</button>
+    <AppInput id="new-channel-name" v-model="newChannelName" />
+    <AppButton type="button" @click.prevent="createChannel">Add channel</AppButton>
 </template>
 
 <script setup lang="ts">
 import type { Channel } from '@/stores/messages';
 import { ref } from 'vue';
+import AppButton from './AppButton.vue';
+import AppInput from './AppInput.vue';
+import ChannelListElement from './ChannelListElement.vue';
 
 const { channels } = defineProps<{
     channels: Channel[];
@@ -50,3 +49,9 @@ function deleteChannel(id: string) {
     });
 }
 </script>
+
+<style scoped>
+.channel-list {
+    padding: 0;
+}
+</style>

@@ -1,24 +1,24 @@
 <template>
-    <aside>
-        <ChannelList
-        :channels="channels"
-        @select="selectChannel($event)"
-        ></ChannelList>
-    </aside>
-    <main>
-        <div class="channel">
-        <h1>Channel {{ selectedChannel?.name }}</h1>
-        <MessageList :messages="selectedChannel?.messages ?? []" />
-        <form @submit.prevent="sendMessage" class="message-form">
-            <label for="username">Username</label>
-            <input v-model="username" id="username" />
-            <button type="button" @click.prevent="connect">Connect</button>
-            <label for="message">Message</label>
-            <textarea v-model="message" id="message" rows="5"></textarea>
-            <button type="submit">Send</button>
-        </form>
-        </div>
-    </main>
+    <div class="app-container">
+        <aside>
+            <ChannelList
+            :channels="channels"
+            @select="selectChannel($event)"
+            ></ChannelList>
+        </aside>
+        <main class="channel">
+            <h1>Channel {{ selectedChannel?.name }}</h1>
+            <MessageList :messages="selectedChannel?.messages ?? []" />
+            <form @submit.prevent="sendMessage" class="message-form">
+                <label for="username">Username</label>
+                <AppInput v-model="username" id="username" />
+                <AppButton type="button" variant="secondary" @click.prevent="connect">Connect</AppButton>
+                <label for="message">Message</label>
+                <AppTextarea v-model="message" id="message" />
+                <AppButton type="submit">Send</AppButton>
+            </form>
+        </main>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -27,6 +27,9 @@ import ChannelList from './components/ChannelList.vue';
 import { ref } from 'vue';
 import { type Channel, type Message, useMessagesStore } from './stores/messages';
 import { storeToRefs } from 'pinia';
+import AppButton from './components/AppButton.vue';
+import AppTextarea from './components/AppTextarea.vue';
+import AppInput from './components/AppInput.vue';
 
 const URL = '/api/.well-known/mercure?topic=/server';
 
@@ -129,34 +132,31 @@ async function loadChannels() {
 </script>
 
 <style>
-* {
-box-sizing: border-box;
-}
+@import './main.css';
+</style>
 
-body {
-  padding: 0;
-  margin: 0;
-}
-
-#app {
+<style scoped>
+.app-container {
   display: flex;
+  height: 100vh;
 }
 
-#app > aside {
+.app-container > aside {
   width: 15%;
   padding: 1rem;
-  border-right: 1px solid black;
-}
-#app > main {
-  flex-grow: 1;
+  color: white;
+  background: var(--space-cadet);
 }
 
 .channel {
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1rem;
+  padding: 1rem ;
+  flex-grow: 1;
+  background: color-mix(in hsl, var(--space-cadet), white 5%);
+  color: white;
 }
 
 .message-form {
@@ -164,6 +164,7 @@ body {
   flex-direction: column;
   gap: 1rem;
   align-self: flex-start;
+  padding: 0 1rem;
 }
 
 .message-form input, .message-form textarea {
