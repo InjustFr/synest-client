@@ -14,6 +14,7 @@
                 <AppButton type="submit" icon><SendHorizonal /></AppButton>
             </form>
         </main>
+        <ProfileView />
         <LoginPopin
             v-if="!isLoggedIn"
             @logged-in="connect"
@@ -25,19 +26,22 @@
 import MessageList from './components/MessageList.vue';
 import ChannelList from './components/ChannelList.vue';
 import { ref } from 'vue';
-import { type Channel, type Message, useMessagesStore } from './stores/messages';
+import { useMessagesStore } from './stores/messages';
 import { storeToRefs } from 'pinia';
 import AppButton from './components/AppButton.vue';
 import AppTextarea from './components/AppTextarea.vue';
 import LoginPopin from './components/Login/LoginPopin.vue';
 import { useUserStore } from './stores/user';
 import { SendHorizonal } from 'lucide-vue-next';
+import type { Channel, Message } from './types/channel';
+import { getChannels } from './api/channel';
+import ProfileView from './components/ProfileView.vue';
 
 const URL = '/api/.well-known/mercure?topic=/server';
 
 const { channels } = storeToRefs(useMessagesStore());
 
-const { isLoggedIn } = storeToRefs(useUserStore());
+const { profile, token, isLoggedIn } = storeToRefs(useUserStore());
 
 const message = ref('');
 const username = ref('');
@@ -93,7 +97,7 @@ async function sendMessage() {
     }
 
     const messageToSend = {
-        username: username.value,
+        username: profile.value?.username,
         content: message.value,
         channel: selectedChannel.value.id,
     };
@@ -103,6 +107,7 @@ async function sendMessage() {
         body: JSON.stringify(messageToSend),
         headers: {
             'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token.value,
         },
     });
 
@@ -124,13 +129,7 @@ function selectChannel(channel: Channel) {
 }
 
 async function loadChannels() {
-    const response = await fetch('/api/channels');
-    if (!response.ok) {
-        throw new Error('Error while fetching channels');
-    }
-
-    channels.value = await response.json();
-
+    channels.value = await getChannels();
     selectedChannel.value = channels.value[0] ?? null;
 }
 </script>

@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Channel } from '@/stores/messages';
+import type { Channel } from '@/types/channel';
 import { X } from 'lucide-vue-next';
 
 defineProps<{

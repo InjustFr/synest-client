@@ -36,6 +36,7 @@ import AppInput from '../AppInput.vue';
 import FormGroup from '../FormGroup.vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/user';
+import { getProfile } from '@/api/user';
 
 const emit = defineEmits<{
     loggedIn: [];
@@ -44,7 +45,7 @@ const emit = defineEmits<{
 const email = ref('');
 const password = ref('');
 
-const { token } = storeToRefs(useUserStore());
+const { token, profile } = storeToRefs(useUserStore());
 
 async function login() {
     const result = await fetch('/api/login', {
@@ -59,8 +60,10 @@ async function login() {
     });
 
     if (result.ok) {
-        token.value = await result.json();
+        token.value = (await result.json()).token;
         emit('loggedIn');
+
+        profile.value = await getProfile();
     }
 }
 </script>

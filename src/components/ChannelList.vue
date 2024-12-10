@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Channel } from '@/stores/messages';
+import type { Channel } from '@/types/channel';
 import { ref } from 'vue';
 import AppButton from './AppButton.vue';
 import AppInput from './AppInput.vue';
