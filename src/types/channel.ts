@@ -4,8 +4,14 @@ export type Message = {
     content: string;
 };
 
+export enum ChannelType {
+    Text = 'text',
+    Video = 'video',
+}
+
 export type Channel = {
     id: string;
     name: string;
+    type: ChannelType;
     messages: Message[];
 };

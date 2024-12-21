@@ -5,6 +5,8 @@
             href=""
             @click.prevent="emit('select', channel)"
         >
+            <Video v-if="channel.type === 'video'" />
+            <MessageSquare v-else />
             {{ channel.name }}
         </a>
         <a
@@ -19,7 +21,7 @@
 
 <script setup lang="ts">
 import type { Channel } from '@/types/channel';
-import { X } from 'lucide-vue-next';
+import { MessageSquare, Video, X } from 'lucide-vue-next';
 
 defineProps<{
     channel: Channel;

@@ -8,7 +8,8 @@
         </aside>
         <main class="channel">
             <h1>Channel {{ selectedChannel?.name }}</h1>
-            <MessageList :messages="selectedChannel?.messages ?? []" />
+            <MessageList v-if="selectedChannel?.type === 'text'" :messages="selectedChannel?.messages ?? []" />
+            <VideoChannel v-if="selectedChannel?.type === 'video'" :channel="selectedChannel" />
             <form @submit.prevent="sendMessage" class="message-form">
                 <AppTextarea v-model="message" id="message" placeholder="Type your message ..." />
                 <AppButton type="submit" icon><SendHorizonal /></AppButton>
@@ -36,6 +37,7 @@ import { SendHorizonal } from 'lucide-vue-next';
 import type { Channel, Message } from './types/channel';
 import { getChannels } from './api/channel';
 import ProfileView from './components/ProfileView.vue';
+import VideoChannel from './components/VideoChannel.vue';
 
 const URL = '/api/.well-known/mercure?topic=/server';
 
@@ -44,7 +46,6 @@ const { channels } = storeToRefs(useMessagesStore());
 const { profile, token, isLoggedIn } = storeToRefs(useUserStore());
 
 const message = ref('');
-const username = ref('');
 const eventSourceOpened = ref(false);
 const selectedChannel = ref<Channel>(channels.value[0] ?? null);
 
