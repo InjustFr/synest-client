@@ -18,124 +18,134 @@
 import type { Channel } from '@/types/channel';
 import { onMounted, onUnmounted, ref } from 'vue';
 import VideoChannelParticipant from './VideoChannelParticipant.vue';
+import { storeToRefs } from 'pinia';
+import { useUserStore } from '@/stores/user';
 
 const { channel } = defineProps<{
     channel: Channel;
 }>();
 
+const { profile } = storeToRefs(useUserStore());
+
 const localStream = ref<MediaStream | null>(null);
 const remoteStreams = ref<MediaStream[]>([]);
 
-function guidGenerator() {
-    const S4 = function () {
-        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
-    };
-    return (S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4());
-}
-
 let ws: WebSocket | null = null;
+let pc: RTCPeerConnection | null;
+const id = profile.value?.username;
+const roomId = channel.id;
 
-onMounted(() => {
-    navigator.mediaDevices.getUserMedia({ video: {
+onMounted(async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: {
         width: { min: 1024, ideal: 1280, max: 1920 },
         height: { min: 776, ideal: 720, max: 1080 },
-    }, audio: true })
-        .then((stream) => {
-            const pc = new RTCPeerConnection();
-            console.log(pc);
-            const id = guidGenerator();
-            const roomId = channel.id;
-            pc.ontrack = function (event) {
-                if (event.track.kind === 'audio') {
-                    return;
+    }, audio: true });
+
+    pc = new RTCPeerConnection();
+    pc.ontrack = function (event) {
+        if (event.track.kind === 'audio') {
+            return;
+        }
+
+        remoteStreams.value.push(event.streams[0]);
+
+        event.streams[0].onremovetrack = ({ track }) => {
+            const index = remoteStreams.value.findIndex(t => t === event.streams[0]);
+            if (index !== -1) {
+                remoteStreams.value.splice(index, 1);
+            }
+        };
+    };
+
+    localStream.value = stream;
+    stream.getTracks().forEach(track => pc?.addTrack(track, stream));
+
+    ws = new WebSocket('ws://localhost:8080/');
+    ws.onopen = function (evt) {
+        ws?.send(JSON.stringify({
+            data: {
+                roomId,
+                peerId: id,
+            },
+            type: 'join',
+        }));
+    };
+
+    pc.onicecandidate = (e) => {
+        if (!e.candidate) {
+            return;
+        }
+
+        ws?.send(JSON.stringify({
+            type: 'candidate', data: {
+                peerId: id,
+                roomId,
+                candidate: JSON.stringify(e.candidate),
+            },
+        }));
+    };
+
+    ws.onmessage = function (evt) {
+        const msg = JSON.parse(evt.data);
+        if (!msg) {
+            return console.log('failed to parse msg');
+        }
+
+        switch (msg.type) {
+            case 'offer':
+                const offer = JSON.parse(msg.data);
+                if (!offer) {
+                    return console.log('failed to parse answer');
                 }
 
-                remoteStreams.value.push(event.streams[0]);
+                pc?.setRemoteDescription(offer);
+                pc?.createAnswer().then((answer) => {
+                    pc?.setLocalDescription(answer);
+                    ws?.send(JSON.stringify({
+                        type: 'answer', data: {
+                            peerId: id,
+                            roomId,
+                            answer: JSON.stringify(answer),
+                        },
+                    }));
+                });
 
-                event.streams[0].onremovetrack = ({ track }) => {
-                    const index = remoteStreams.value.findIndex(t => t === event.streams[0]);
-                    if (index !== -1) {
-                        remoteStreams.value.splice(index, 1);
-                    }
-                };
-            };
-
-            localStream.value = stream;
-            stream.getTracks().forEach(track => pc.addTrack(track, stream));
-
-            ws = new WebSocket('ws://localhost:8080/');
-            ws.onopen = function (evt) {
-                ws.send(JSON.stringify({
-                    data: {
-                        roomId,
-                        peerId: id,
-                    },
-                    type: 'join',
-                }));
-            };
-
-            pc.onicecandidate = (e) => {
-                if (!e.candidate) {
-                    return;
+                return;
+            case 'candidate':
+                const candidate = JSON.parse(msg.data);
+                if (!candidate) {
+                    return console.log('failed to parse candidate');
                 }
 
-                console.log('onicetriggered', pc);
+                pc?.addIceCandidate(candidate);
+        }
+    };
 
-                ws.send(JSON.stringify({
-                    type: 'candidate', data: {
-                        peerId: id,
-                        roomId,
-                        candidate: JSON.stringify(e.candidate),
-                    },
-                }));
-            };
+    ws.onerror = function (evt) {
+        console.log('ERROR: ' + evt);
+    };
+});
 
-            ws.onclose = function (evt) {
-                window.alert('Websocket has closed');
-            };
-
-            ws.onmessage = function (evt) {
-                const msg = JSON.parse(evt.data);
-                if (!msg) {
-                    return console.log('failed to parse msg');
-                }
-
-                switch (msg.type) {
-                    case 'offer':
-                        const offer = JSON.parse(msg.data);
-                        if (!offer) {
-                            return console.log('failed to parse answer');
-                        }
-                        pc.setRemoteDescription(offer);
-                        console.log('offer triggered', pc);
-                        pc.createAnswer().then((answer) => {
-                            pc.setLocalDescription(answer);
-                            ws.send(JSON.stringify({
-                                type: 'answer', data: {
-                                    peerId: id,
-                                    roomId,
-                                    answer: JSON.stringify(answer),
-                                },
-                            }));
-                        });
-                        return;
-
-                    case 'candidate':
-                        const candidate = JSON.parse(msg.data);
-                        console.log(candidate);
-                        if (!candidate) {
-                            return console.log('failed to parse candidate');
-                        }
-
-                        pc.addIceCandidate(candidate);
-                        console.log('candidate triggered', pc);
-                }
-            };
-
-            ws.onerror = function (evt) {
-                console.log('ERROR: ' + evt.data);
-            };
-        }).catch(console.error);
+onUnmounted(() => {
+    if (ws) {
+        ws.send(JSON.stringify({
+            data: {
+                roomId,
+                peerId: id,
+            },
+            type: 'leave',
+        }));
+        ws.close();
+        localStream.value?.getTracks().forEach((track) => {
+            if (track.readyState == 'live') {
+                track.stop();
+            }
+        });
+        localStream.value = null;
+    }
+    if (pc) {
+        pc.close();
+    }
 });
 
 </script>
@@ -147,7 +157,7 @@ onMounted(() => {
     grid-auto-rows: minmax(100px, auto);
     gap: 1rem;
     grid-auto-flow: column;
-    align-items: center;
     justify-content: center;
+    flex-grow: 1;
 }
 </style>
