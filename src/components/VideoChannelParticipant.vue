@@ -42,4 +42,8 @@ const style = computed(() => {
 .video-channel-participant {
     aspect-ratio: 16 / 9;
 }
+.video-channel-participant__video {
+    max-width: 700px;
+    width: 100%;
+}
 </style>

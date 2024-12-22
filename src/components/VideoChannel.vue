@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import type { Channel } from '@/types/channel';
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import VideoChannelParticipant from './VideoChannelParticipant.vue';
 
 const { channel } = defineProps<{
@@ -33,8 +33,13 @@ function guidGenerator() {
     return (S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4());
 }
 
+let ws: WebSocket | null = null;
+
 onMounted(() => {
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    navigator.mediaDevices.getUserMedia({ video: {
+        width: { min: 1024, ideal: 1280, max: 1920 },
+        height: { min: 776, ideal: 720, max: 1080 },
+    }, audio: true })
         .then((stream) => {
             const pc = new RTCPeerConnection();
             console.log(pc);
@@ -58,7 +63,7 @@ onMounted(() => {
             localStream.value = stream;
             stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
-            const ws = new WebSocket('ws://localhost:8080/');
+            ws = new WebSocket('ws://localhost:8080/');
             ws.onopen = function (evt) {
                 ws.send(JSON.stringify({
                     data: {
@@ -137,6 +142,12 @@ onMounted(() => {
 
 <style lang="css" scoped>
 .video-channel {
-    display: flex;
+    display: grid;
+    grid-auto-columns: minmax(100px, auto);
+    grid-auto-rows: minmax(100px, auto);
+    gap: 1rem;
+    grid-auto-flow: column;
+    align-items: center;
+    justify-content: center;
 }
 </style>
