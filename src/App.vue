@@ -1,8 +1,15 @@
 <template>
     <div class="app-container">
         <aside>
+            <ServerList
+                v-model="selectedServer"
+                @update:model-value="loadChannels()"
+            />
+        </aside>
+        <aside v-if="selectedServer">
             <ChannelList
             :channels="channels"
+            :server="selectedServer"
             @select="selectChannel($event)"
             ></ChannelList>
         </aside>
@@ -38,16 +45,20 @@ import type { Channel, Message } from './types/channel';
 import { getChannels } from './api/channel';
 import ProfileView from './components/ProfileView.vue';
 import VideoChannel from './components/VideoChannel.vue';
-
-const URL = '/api/.well-known/mercure?topic=/server';
+import { getServers } from './api/user';
+import { useServerStore } from './stores/server';
+import ServerList from './components/ServerList.vue';
+import type { Server } from './types/server';
 
 const { channels } = storeToRefs(useMessagesStore());
+const { servers } = storeToRefs(useServerStore());
 
 const { profile, token, isLoggedIn } = storeToRefs(useUserStore());
 
 const message = ref('');
 const eventSourceOpened = ref(false);
 const selectedChannel = ref<Channel>(channels.value[0] ?? null);
+const selectedServer = ref<Server | null>(null);
 
 let eventSource: EventSource | null = null;
 
@@ -116,13 +127,9 @@ async function sendMessage() {
 }
 
 async function connect() {
+    await loadServers();
+
     await loadChannels();
-
-    eventSource = new EventSource(URL);
-
-    eventSource.onopen = onEventSourceOpen;
-    eventSource.onmessage = onEventSourceMessage;
-    eventSource.onerror = onEventSourceError;
 }
 
 function selectChannel(channel: Channel) {
@@ -130,8 +137,33 @@ function selectChannel(channel: Channel) {
 }
 
 async function loadChannels() {
-    channels.value = await getChannels();
+    if (!selectedServer.value) {
+        return;
+    }
+
+    channels.value = await getChannels(selectedServer.value.id);
     selectedChannel.value = channels.value[0] ?? null;
+}
+
+async function loadServers() {
+    const { servers: apiServers, hubUrl } = await getServers();
+
+    servers.value = apiServers;
+    selectedServer.value = servers.value[0];
+
+    if (hubUrl) {
+        const hub = new URL(hubUrl.replace(import.meta.env.VITE_API_URL, window.origin + '/api'));
+        servers.value.forEach((server) => {
+            hub.searchParams.append('topic', '/server/' + server.id);
+        });
+
+        eventSource = new EventSource(hub);
+        console.log(eventSource);
+
+        eventSource.onopen = onEventSourceOpen;
+        eventSource.onmessage = onEventSourceMessage;
+        eventSource.onerror = onEventSourceError;
+    }
 }
 </script>
 
@@ -143,13 +175,8 @@ async function loadChannels() {
 .app-container {
   display: flex;
   height: 100vh;
-}
-
-.app-container > aside {
-  width: 15%;
-  padding: 1rem;
-  color: white;
   background: var(--space-cadet);
+  color: white;
 }
 
 .channel {
@@ -159,8 +186,11 @@ async function loadChannels() {
   gap: 1rem;
   padding: 1rem ;
   flex-grow: 1;
-  background: color-mix(in hsl, var(--space-cadet), white 5%);
   color: white;
+}
+
+.channel > .message-list {
+    flex-grow: 1;
 }
 
 .message-form {
