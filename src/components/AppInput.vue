@@ -11,11 +11,11 @@ const model = defineModel<string>();
 </script>
 <style>
     .input {
-        background: color-mix(in hsl, var(--space-cadet), white 15%);
+        background: var(--background-lighter-2);
         border: none;
         border-radius: 1rem;
         padding: 0.5rem 1rem;
-        color: white;
+        color: var(--white);
         width: 100%;
         display: block;
     }

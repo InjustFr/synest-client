@@ -11,12 +11,12 @@ const model = defineModel<string>();
 </script>
 <style>
     .textarea {
-        background: color-mix(in hsl, var(--space-cadet), white 15%);
+        background: var(--background-lighter-2);
         border: none;
         border-radius: 1rem;
         min-height: 4rem;
         padding: 1rem;
-        color: white;
+        color: var(--white);
         resize: none;
         width: 100%;
     }

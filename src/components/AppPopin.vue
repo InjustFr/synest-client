@@ -23,7 +23,7 @@ const emit = defineEmits<{
 
 <style scoped>
 .popin-container {
-    background: hsla(248, 0%, 0%, 0.7);
+    background: color-mix(in hsl, var(--background) 80%, transparent);
     position: absolute;
     top: 0;
     left: 0;
@@ -37,7 +37,7 @@ const emit = defineEmits<{
 .popin {
     padding: 2rem;
     position: relative;
-    background: var(--space-cadet);
+    background: var(--background-lighter-1);
     border-radius: 1rem;
 }
 
@@ -46,7 +46,7 @@ const emit = defineEmits<{
     top: 1rem;
     right: 1rem;
     font-size: 2rem;
-    color: white;
+    color: var(--white);
     text-decoration: none;
 }
 </style>

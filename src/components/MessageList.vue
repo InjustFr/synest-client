@@ -30,6 +30,6 @@ const { messages } = defineProps<{
 }
 
 .message-list__container > *:not(:first-child) {
-    border-top: 1px solid color-mix(in hsl, var(--space-cadet), white 40%);
+    border-top: 1px solid var(--background);
 }
 </style>

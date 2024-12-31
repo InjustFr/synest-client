@@ -1,5 +1,6 @@
 <template>
     <div class="channel-list">
+        <h2 class="channel-list__server-title">{{ server?.name }}</h2>
         <ul class="channel-list__list">
             <ChannelListElement
                 v-for="channel, key in channels"
@@ -52,14 +53,19 @@ function deleteChannel(id: string) {
 .channel-list {
     width: 15vw;
     padding: 1rem;
-    color: white;
-    background: color-mix(in hsl, var(--space-cadet), white 5%);
-    height: 100%
+    color: var(--white);
+    height: 100%;
+    border-right: 2px solid var(--background);
 }
 
 .channel-list__list {
     padding: 0;
     margin: 0;
     margin-bottom: 1rem;
+}
+
+.channel-list__server-title {
+    padding: 0;
+    margin: 0 1rem 1rem;
 }
 </style>

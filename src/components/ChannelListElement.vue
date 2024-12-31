@@ -1,12 +1,12 @@
 <template>
     <li class="channel-list-element">
+        <Video v-if="channel.type === 'video'" />
+        <MessageSquare v-else />
         <a
             class="channel-list-element__select"
             href=""
             @click.prevent="emit('select', channel)"
         >
-            <Video v-if="channel.type === 'video'" />
-            <MessageSquare v-else />
             {{ channel.name }}
         </a>
         <a
@@ -39,16 +39,19 @@ const emit = defineEmits<{
     padding: 0.25rem 1rem;
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
 
 .channel-list-element__select {
-    color: white;
+    color: var(--white);
     text-decoration: none;
+    margin-left: 0.5rem;
 }
 
 .channel-list-element__delete {
-    color: var(--crimson);
+    color: var(--danger);
     text-decoration: none;
+    margin-left: auto;
 }
 
 </style>

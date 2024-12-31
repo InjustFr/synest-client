@@ -35,7 +35,7 @@ const classes = computed(() => {
 
 <style scoped>
     .btn {
-        color: white;
+        color: var(--white);
         padding: 0.5rem 1rem;
         border-radius: 1rem;
         outline: none;
@@ -51,12 +51,12 @@ const classes = computed(() => {
     }
 
     .btn-primary {
-        background: var(--persian-green);
-        color: white;
+        background: var(--primary);
+        color: var(--white);
     }
 
     .btn-primary:hover {
-        background: color-mix(in hsl, var(--persian-green), black 20%);
+        background: var(--primary-lighter-1);
     }
 
     .btn-secondary {

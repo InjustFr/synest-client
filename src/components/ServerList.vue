@@ -5,9 +5,8 @@
             :key="server.id"
             @click="model = $event"
             :server="server"
-            :class="{
-                'server-list-element__active': model === server
-            }"
+            class="server-list__element"
+            :active="model === server"
         />
     </ul>
 </template>
@@ -25,14 +24,14 @@ const model = defineModel<Server | null>();
 
 <style lang="css" scoped>
 .server-list {
-    padding: 0;
-    padding-top: 1rem;
+    padding: 1rem 0.75rem;
     margin: 0;
-    background: color-mix(in hsl, var(--space-cadet), white 10%);
+    background: var(--primary-lighter-1);
     height: 100%;
+    width: 5rem;
 }
 
-.server-list-element__active {
-    background: color-mix(in hsl, var(--space-cadet), white 5%);
+.server-list .server-list__element:not(:first-child) {
+    margin-top: 1rem;
 }
 </style>

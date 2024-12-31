@@ -14,7 +14,7 @@ const { profile } = storeToRefs(useUserStore());
 
 <style lang="css" scoped>
 .profile {
-    background: color-mix(in hsl, var(--space-cadet), white 5%);
     padding: 1rem;
+    border-left: 2px solid var(--background);
 }
 </style>

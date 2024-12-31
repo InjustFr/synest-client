@@ -14,7 +14,7 @@
             ></ChannelList>
         </aside>
         <main class="channel">
-            <h1>Channel {{ selectedChannel?.name }}</h1>
+            <h2>Channel {{ selectedChannel?.name }}</h2>
             <MessageList v-if="selectedChannel?.type === 'text'" :messages="selectedChannel?.messages ?? []" />
             <VideoChannel v-if="selectedChannel?.type === 'video'" :channel="selectedChannel" />
             <form @submit.prevent="sendMessage" class="message-form">
@@ -175,8 +175,6 @@ async function loadServers() {
 .app-container {
   display: flex;
   height: 100vh;
-  background: var(--space-cadet);
-  color: white;
 }
 
 .channel {
@@ -186,7 +184,7 @@ async function loadServers() {
   gap: 1rem;
   padding: 1rem ;
   flex-grow: 1;
-  color: white;
+  color: var(--white);
 }
 
 .channel > .message-list {
