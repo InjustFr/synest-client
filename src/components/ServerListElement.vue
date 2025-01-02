@@ -6,23 +6,16 @@
                 'server-list-element__active': active
             }"
             href=""
-            @click.prevent="emit('click', server)"
+            @click.prevent
         >
-            {{ server.name }}
+            <slot />
         </a>
     </li>
 </template>
 
 <script setup lang="ts">
-import type { Server } from '@/types/server';
-
 defineProps<{
-    server: Server;
     active?: boolean;
-}>();
-
-const emit = defineEmits<{
-    click: [Server];
 }>();
 </script>
 

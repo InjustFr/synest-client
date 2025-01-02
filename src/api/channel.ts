@@ -19,15 +19,12 @@ export async function getChannels(serverId: string): Promise<Channel[]> {
     throw new Error('Error while fetching channels');
 }
 
-export async function createChannel({ name, type }: { name: string; type: ChannelType }, serverId: string): Promise<Channel> {
+export async function createChannel(data: { name: string; type: ChannelType }, serverId: string): Promise<Channel> {
     const { token } = storeToRefs(useUserStore());
 
     const result = await fetch('/api/servers/' + serverId + '/channels', {
         method: 'POST',
-        body: JSON.stringify({
-            name: name,
-            type: type,
-        }),
+        body: JSON.stringify(data),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token.value,
@@ -52,7 +49,7 @@ export async function deleteChannel(id: string, serverId: string) {
     });
 
     if (result.ok) {
-        return await result.json();
+        return;
     }
 
     throw new Error('Error while deleting channel ' + id);

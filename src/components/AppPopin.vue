@@ -1,7 +1,10 @@
 <template>
-    <div class="popin-container">
+    <div
+        class="popin-container"
+        v-if="model"
+    >
         <div class="popin">
-            <a v-if="!disableClose" href="" class="popin__close" @click="emit('close')"><X /></a>
+            <a v-if="!disableClose" href="" class="popin__close" @click.prevent="model = false"><X /></a>
             <div class="popin__content">
                 <slot />
             </div>
@@ -16,9 +19,7 @@ const { disableClose = false } = defineProps<{
     disableClose?: boolean;
 }>();
 
-const emit = defineEmits<{
-    close: [];
-}>();
+const model = defineModel<boolean>();
 </script>
 
 <style scoped>

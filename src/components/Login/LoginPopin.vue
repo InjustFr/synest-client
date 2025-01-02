@@ -1,8 +1,12 @@
 <template>
-    <AppPopin class="login-popin" disable-close>
+    <AppPopin
+        class="login-popin"
+        v-model="model"
+        disable-close
+    >
         <h2 class="login-popin__title">Login</h2>
         <LoginForm
-            @logged-in="emit('loggedIn')"
+            @logged-in="onLoggedIn"
         />
     </AppPopin>
 </template>
@@ -14,6 +18,13 @@ import LoginForm from './LoginForm.vue';
 const emit = defineEmits<{
     loggedIn: [];
 }>();
+
+const model = defineModel<boolean>();
+
+function onLoggedIn() {
+    emit('loggedIn');
+    model.value = false;
+}
 </script>
 
 <style scoped>

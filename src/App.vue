@@ -4,6 +4,8 @@
             <ServerList
                 v-model="selectedServer"
                 @update:model-value="loadChannels()"
+                @server-created="onServerCreated()"
+                @server-removed="onServerRemoved()"
             />
         </aside>
         <aside v-if="selectedServer">
@@ -24,9 +26,10 @@
         </main>
         <ProfileView />
         <LoginPopin
-            v-if="!isLoggedIn"
+            v-model="showLoginPopin"
             @logged-in="connect"
         />
+        <div id="modals"></div>
     </div>
 </template>
 
@@ -59,6 +62,7 @@ const message = ref('');
 const eventSourceOpened = ref(false);
 const selectedChannel = ref<Channel>(channels.value[0] ?? null);
 const selectedServer = ref<Server | null>(null);
+const showLoginPopin = ref<boolean>(!isLoggedIn.value);
 
 let eventSource: EventSource | null = null;
 
@@ -157,13 +161,31 @@ async function loadServers() {
             hub.searchParams.append('topic', '/server/' + server.id);
         });
 
+        if (eventSource) {
+            eventSource.close();
+        }
+
         eventSource = new EventSource(hub);
-        console.log(eventSource);
 
         eventSource.onopen = onEventSourceOpen;
         eventSource.onmessage = onEventSourceMessage;
         eventSource.onerror = onEventSourceError;
     }
+}
+
+async function onServerCreated() {
+    await loadServers();
+
+    selectedServer.value = servers.value[servers.value.length - 1];
+    loadChannels();
+}
+
+async function onServerRemoved() {
+    console.error('triggered');
+    await loadServers();
+
+    selectedServer.value = servers.value[0];
+    loadChannels();
 }
 </script>
 
