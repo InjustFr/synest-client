@@ -2,11 +2,16 @@
     <input
         class="input"
         v-model="model"
+        @change.stop="emit('change', model)"
     />
 </template>
 
 <script setup lang="ts">
-const model = defineModel<string>();
+const model = defineModel<unknown>();
+
+const emit = defineEmits<{
+    change: [unknown];
+}>();
 
 </script>
 <style>

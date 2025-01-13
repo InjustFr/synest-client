@@ -1,6 +1,32 @@
 <template>
     <div class="channel-list">
-        <h2 class="channel-list__server-title">{{ server?.name }}</h2>
+        <div class="channel-list__server-head">
+            <h2 class="channel-list__server-title">
+                {{ server?.name }}
+            </h2>
+            <AppDropdown>
+                <template #link>
+                    <Ellipsis />
+                </template>
+                <template #content>
+                    <ul
+                        class="server-menu"
+                    >
+                        <li
+                            class="server-menu__element"
+                        >
+                            <a
+                                href=""
+                                class="server-menu__link"
+                                @click.prevent="settingsModelOpened = true"
+                            >
+                                Settings
+                            </a>
+                        </li>
+                    </ul>
+                </template>
+            </AppDropdown>
+        </div>
         <ul class="channel-list__list">
             <ChannelListElement
                 v-for="channel, key in channels"
@@ -13,8 +39,18 @@
         <AppInput id="new-channel-name" v-model="newChannelName" placeholder="Name" />
         <AppInput id="new-channel-type" v-model="newChannelType" placeholder="Type" />
         <AppButton type="button" @click.prevent="createChannel">Add channel</AppButton>
+        <Teleport
+            defer
+            to="#modals"
+        >
+            <Suspense>
+                <ServerSettingsPopin
+                    v-model="settingsModelOpened"
+                    :server="server"
+                />
+            </Suspense>
+        </Teleport>
     </div>
-
 </template>
 
 <script setup lang="ts">
@@ -25,6 +61,9 @@ import AppInput from './AppInput.vue';
 import ChannelListElement from './ChannelListElement.vue';
 import { createChannel as apiCreateChannel, deleteChannel as apiDeleteChannel } from '@/api/channel';
 import type { Server } from '@/types/server';
+import { Ellipsis } from 'lucide-vue-next';
+import ServerSettingsPopin from './ServerSettingsPopin.vue';
+import AppDropdown from './AppDropdown.vue';
 
 const { channels, server } = defineProps<{
     channels: Channel[];
@@ -37,6 +76,7 @@ const emit = defineEmits<{
 
 const newChannelName = ref('');
 const newChannelType = ref<ChannelType>(ChannelType.Text);
+const settingsModelOpened = ref(false);
 
 async function createChannel() {
     await apiCreateChannel({ name: newChannelName.value, type: newChannelType.value }, server.id);
@@ -64,8 +104,34 @@ function deleteChannel(id: string) {
     margin-bottom: 1rem;
 }
 
+.channel-list__server-head {
+    padding: 0 1rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .channel-list__server-title {
     padding: 0;
-    margin: 0 1rem 1rem;
+    margin: 0;
 }
+
+.server-menu {
+    padding: 0;
+    margin: 0;
+}
+
+.server-menu__element {
+    list-style: none;
+    margin: 0 -1rem;
+}
+
+.server-menu__link {
+    display: inline-block;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    padding: 0 1rem;
+}
+
 </style>

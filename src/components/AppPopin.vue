@@ -3,7 +3,10 @@
         class="popin-container"
         v-if="model"
     >
-        <div class="popin">
+        <div
+            class="popin"
+            :class="classes"
+        >
             <a v-if="!disableClose" href="" class="popin__close" @click.prevent="model = false"><X /></a>
             <div class="popin__content">
                 <slot />
@@ -14,12 +17,20 @@
 
 <script setup lang="ts">
 import { X } from 'lucide-vue-next';
+import { computed } from 'vue';
 
-const { disableClose = false } = defineProps<{
+const { disableClose = false, fullscreen = false } = defineProps<{
     disableClose?: boolean;
+    fullscreen?: boolean;
 }>();
 
 const model = defineModel<boolean>();
+
+const classes = computed(() => {
+    return {
+        'popin--fullscreen': fullscreen,
+    };
+});
 </script>
 
 <style scoped>
@@ -49,5 +60,10 @@ const model = defineModel<boolean>();
     font-size: 2rem;
     color: var(--white);
     text-decoration: none;
+}
+
+.popin--fullscreen {
+    width: 100vw;
+    height: 100vh;
 }
 </style>
