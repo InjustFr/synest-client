@@ -52,6 +52,7 @@ import { getServers } from './api/user';
 import { useServerStore } from './stores/server';
 import ServerList from './components/ServerList.vue';
 import type { Server } from './types/server';
+import { useEventSource } from './composable/event-source';
 
 const { channels } = storeToRefs(useMessagesStore());
 const { servers } = storeToRefs(useServerStore());
@@ -59,53 +60,48 @@ const { servers } = storeToRefs(useServerStore());
 const { profile, token, isLoggedIn } = storeToRefs(useUserStore());
 
 const message = ref('');
-const eventSourceOpened = ref(false);
 const selectedChannel = ref<Channel>(channels.value[0] ?? null);
 const selectedServer = ref<Server | null>(null);
 const showLoginPopin = ref<boolean>(!isLoggedIn.value);
 
-let eventSource: EventSource | null = null;
+const { init: initEventSource, addHandler } = useEventSource();
 
-function onEventSourceOpen(event: Event) {
-    eventSourceOpened.value = true;
-}
+addHandler('message_created', (message: unknown) => {
+    const data = message as {
+        id: string;
+        content: string;
+        username: string;
+        channel: string;
+    };
 
-function onEventSourceMessage(event: MessageEvent) {
-    const recievedMessage = JSON.parse(event.data);
-    console.log(recievedMessage);
+    const channel = channels.value.find(channel => channel.id === data.channel);
 
-    switch (recievedMessage.type) {
-        case 'message_created':
-            const channel = channels.value.find(channel => channel.id === recievedMessage.data.channel);
+    const newMessage = {
+        id: data.id,
+        content: data.content,
+        username: data.username,
+    } as Message;
 
-            const newMessage = {
-                id: recievedMessage.data.id,
-                content: recievedMessage.data.content,
-                username: recievedMessage.data.username,
-            } as Message;
+    channel?.messages.push(newMessage);
+});
 
-            channel?.messages.push(newMessage);
-            break;
-        case 'channel_created':
-            channels.value.push({ ...recievedMessage.data, messages: [] });
-            break;
-        case 'channel_deleted':
-            const channelIndex = channels.value.findIndex(channel => channel.id === recievedMessage.data.id);
-            if (channelIndex !== -1) {
-                channels.value.splice(channelIndex, 1);
-            }
+addHandler('channel_created', (message: unknown) => {
+    const data = message as Omit<Channel, 'messages'>;
 
-            if (recievedMessage.data.id === selectedChannel.value.id) {
-                selectedChannel.value = channels.value[0] ?? null;
-            }
+    channels.value.push({ ...data, messages: [] as Message[] });
+});
 
-            break;
+addHandler('channel_deleted', (message: unknown) => {
+    const data = message as { id: string };
+    const channelIndex = channels.value.findIndex(channel => channel.id === data.id);
+    if (channelIndex !== -1) {
+        channels.value.splice(channelIndex, 1);
     }
-}
 
-function onEventSourceError(event: Event) {
-    console.error('Error with eventSource', event);
-}
+    if (data.id === selectedChannel.value.id) {
+        selectedChannel.value = channels.value[0] ?? null;
+    }
+});
 
 async function sendMessage() {
     if (!message.value) {
@@ -161,15 +157,7 @@ async function loadServers() {
             hub.searchParams.append('topic', '/server/' + server.id);
         });
 
-        if (eventSource) {
-            eventSource.close();
-        }
-
-        eventSource = new EventSource(hub);
-
-        eventSource.onopen = onEventSourceOpen;
-        eventSource.onmessage = onEventSourceMessage;
-        eventSource.onerror = onEventSourceError;
+        initEventSource(hub);
     }
 }
 
