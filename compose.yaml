@@ -1,11 +1,17 @@
 services:
   node:
+    container_name: synest_client
     image: node:lts
     restart: unless-stopped
     volumes:
       - ./:/var/www/html/app
     working_dir: /var/www/html/app/
-    entrypoint: /bin/bash
+    command: yarn dev
     ports:
-      - 8000
+      - "8100:8100"
+    networks:
+      - synest
 
+networks:
+  synest:
+    external: true

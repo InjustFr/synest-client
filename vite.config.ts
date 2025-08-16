@@ -14,14 +14,17 @@ export default defineConfig(({ command, mode }) => {
 
     return {
         server: {
+            host: '0.0.0.0',
             port: env.VITE_PORT,
             proxy: {
                 '/api': {
                     target: env.VITE_API_URL,
                     secure: false,
                     rewrite: (path: string) => path.replace(/^\/api/, ''),
+                    xfwd: true,
                 },
             },
+            https: true,
         },
         plugins: [
             vue(),
